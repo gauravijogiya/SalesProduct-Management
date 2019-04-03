@@ -1,0 +1,252 @@
+﻿@model IEnumerable<SalesProductManagement.Models.Product>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Products</h2>
+
+<script src="~/Scripts/jquery-3.3.1.js"></script>
+<script src="~/Scripts/jquery-3.3.1.min.js"></script>
+<script src="~/Scripts/bootstrap.min.js"></script>
+<link href="~/Content/bootstrap-theme.min.css" rel="stylesheet" />
+<p>
+
+    <a href="#" data-toggle="modal" data-target="#myModal" class="btn btn-info btn-lg" onclick=" $('#btnCreate').show(); $('#btnUpdate').hide();">Create New</a>
+</p>
+<table class="table  table-striped">
+    <thead>
+        <tr>
+            <th> @Html.DisplayNameFor(model => model.Id)</th>
+
+            <th>
+
+                @Html.DisplayNameFor(model => model.ProductName)
+
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Price)
+            </th>
+            <th>Action(Edit)</th>
+            <th>Action(Delete)</th>
+        </tr>
+    </thead>
+    <tbody id="SetProductsList">
+
+    </tbody>
+
+    @*@foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Address)
+                </td>
+                <td></td>
+                <td>
+                    @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
+                    @Html.ActionLink("Details", "Details", new { id = item.Id }) |
+                    @Html.ActionLink("Delete", "Delete", new { id = item.Id })
+                </td>
+            </tr>
+        }*@
+
+</table>
+<br />
+
+<div class="modal " id="myModal" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h3 class="modal-title">Customer Details</h3>
+            </div>
+
+            <!-- Modal body -->
+            <div class="modal-body">
+
+                <form id="CustomerForm">
+                    <fieldset id="Submitform">
+                        @* @Html .HiddenFor(m=>m.Id,new { @Id = "CustomerId" })*@
+
+                        <div class="form-group">
+                            ProductName
+                            @* @Html.TextBoxFor( model => model.Name,new {@class="form-control" ,@placeholder="Name"})*@
+                            <label display="none" id="lblId" hidden="hidden"></label>
+                            <input type="text" class="form-control" id="txtProductName" />
+                        </div>
+                        <div class="form-group">
+                            Price
+                            @* @Html.TextBoxFor(model => model.Name, new { @class = "form-control", @placeholder = "Name" })*@
+                            <input type="text" class="form-control" id="txtProductPrice" />
+                        </div>
+
+                    </fieldset>
+                </form>
+            </div>
+
+            <!-- Modal footer -->
+            <div class="modal-footer">
+                <button id="btnCreate" class="btn btn-default   right" data-toggle="modal" type="button" onclick="AddData()">Save</button>
+                <button id="btnUpdate" class="btn btn-default  right" type="button" onclick="UpdateProducts()">Update</button>
+                <button id="btnCancle" class="btn btn-default  right" type="button" data-dismiss="modal">Cancle</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+
+    //Getting Customers
+    $(document).ready(loadData())
+    function loadData() {
+
+        $.get("/Products/CreateProducts", null, DataBind);
+        $('#btnUpdate').hide();
+        $('#btnCreate').show();
+        function DataBind(productList) {
+            $("#btnCreate").show();
+            // alert($("#SetCustomersList").text);
+            var rows = " ";
+            $('#SetProductsList').empty();
+            var dt = JSON.stringify(productList);
+            // alert(CustomerList.Name);
+
+            $.each(productList, function (i, item) {
+                rows = "<tr class='row_" + item.Id + "' >" +
+                    "<td>" + item.Id + "</td>" +
+                    "<td>" + item.ProductName + "</td>" +
+                    "<td>" + item.Price + "</td>" +
+                    "<td>" + "<a href='#' class='btn btn-warning' onclick='EditProducts(" + item.Id + ")'><span class='glyphicon glyphicon-edit'></span>Edit</a>" + "</td>" +
+                    "<td>" + "<a href='#' class='btn btn-danger' onclick='DeleteProducts(" + item.Id + ")'><span class='glyphicon glyphicon-trash'></span>Delete</a>" + "</td>" +
+                    "</tr>";
+                $('#SetProductsList').append(rows);
+            });
+        }
+    }
+    //Add new product
+    var AddData=function () {
+
+        $("#modalTitle").Htmt="Add Customers";
+        // var myformData = $("#CustomerForm").serialize(); 
+
+        var ProcudctrObj = {
+
+            ProductName: $('#txtProductName').val(),
+            Price: $('#txtProductPrice').val()
+        };
+        var rows = " ";
+        
+        $.ajax({
+            type: "POST",
+            datatype: "json",
+            ajaxasync: true, 
+            url:'@Url.Action("Create","Products")',
+            data: {
+                ProductName: $('#txtProductName').val(),
+                Price: $('#txtProductPrice').val()
+            },           
+            success: function (data) {
+                
+                $("#myModal").modal("hide");
+                 rows = "<tr class='row_'" + data + "' >" +
+                    "<td>" + data + "</td>" +
+                     "<td>" + ProcudctrObj.ProductName + "</td>" +
+                     "<td>" + ProcudctrObj.Price + "</td>" +
+                     "<td>" + "<a href='#' class='btn btn-warning' onclick='EditProducts(" + data + ")'><span class='glyphicon glyphicon-edit'></span>Edit</a>" + "</td>" +
+                     "<td>" + "<a href='#' class='btn btn-danger' onclick='DeleteProducts(" + data + ")'><span class='glyphicon glyphicon-trash'></span>Delete</a>" + "</td>" +
+                     "</tr>";
+                    
+                $('#SetProductsList').prepend(rows);      
+            },
+            error: function (errormessage) {
+                alert(errormessage.responseText);
+            }
+        })
+    }
+
+    //Updating products
+    function EditProducts(id) {
+
+        $.ajax({
+            type: "POST",
+            datatype: "json",
+            url: "/Products/GetProductByid",
+            data: { Id: id },
+            success: function (data) {
+                // alert(data.Name);
+                // loadData();
+                $("#lblId").val(id);
+                $('#txtProductName').val(data.ProductName);
+                $('#txtProductPrice').val(data.Price);
+                $('#btnUpdate').show();
+                $('#btnCreate').hide();
+                $('#myModal').modal('show');
+
+            },
+            error: function (errormessage) {
+                alert(errormessage.responseText);
+            }
+        });
+        // });
+    }
+
+
+     function UpdateProducts() {
+       
+      
+         // var mydata = $("CustomerForm").serialize();
+        $.ajax({
+            type: "POST",
+            datatype: "json",
+ 
+            url: '@Url.Action("Update", "Products")',
+            data: {
+                Id: $("#lblId").val(),
+               ProductName: $('#txtProductName').val(),
+                Price: $('#txtProductPrice').val()
+            },
+            success: function (result) {
+                alert(result);
+                if (result == true || result == "true"   ) {
+                    loadData();
+                    $('#txtProductName').val(" ");
+                    $('#txtProductPrice').val(" ");
+                }
+                //alert(result);
+                $("#myModal").modal("hide");
+            },
+            error: function (errormessage) {
+                alert(errormessage.responseText);
+            }
+        });            
+    }
+
+//Delete Productsrodu
+    function DeleteProducts(id) {
+        $.ajax({
+            type: 'get',
+            ajaxasync: true,
+            url: '/Products/Delete',
+            data: { Id: id },
+
+            success: function (result) {
+                alert(result);
+                if (result == true || result == "true"  ) {
+                    $(".row_" + id).remove();
+                    // tr.remove();
+                    alert("successfully deleted");
+                }
+            },
+            error: function () {
+                alert("failed");
+            }
+        });
+    }
+
+</script>

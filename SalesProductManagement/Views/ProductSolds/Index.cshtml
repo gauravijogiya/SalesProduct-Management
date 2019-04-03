@@ -1,0 +1,293 @@
+﻿@model IEnumerable<SalesProductManagement.Models.ProductSold>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Sales</h2>
+
+
+<script src="~/Scripts/jquery-3.3.1.js"></script>
+<script src="~/Scripts/jquery-3.3.1.min.js"></script>
+<script src="~/Scripts/bootstrap.min.js"></script>
+<link href="~/Content/bootstrap-theme.min.css" rel="stylesheet" />
+<p>
+
+    <a href="#" data-toggle="modal" data-target="#myModal" class="btn btn-info btn-lg" onclick=" $('#btnCreate').show(); $('#btnUpdate').hide();">Create New</a>
+</p>
+<table class="table  table-striped">
+    <thead>
+        <tr>
+            <th hidden="hidden"> </th>
+
+            <th>
+CustomerName
+            </th>
+            <th>
+                ProductName
+                
+            </th>
+            <th>
+               StoreName
+            </th>
+            <th>
+               Datesold
+            <th>Action(Edit)</th>
+            <th>Action(Delete)</th>
+        </tr>
+    </thead>
+    <tbody id="SetProductsList"></tbody>
+
+    @*@foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Address)
+                </td>
+                <td></td>
+                <td>
+                    @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
+                    @Html.ActionLink("Details", "Details", new { id = item.Id }) |
+                    @Html.ActionLink("Delete", "Delete", new { id = item.Id })
+                </td>
+            </tr>
+        }*@
+
+</table>
+<br />
+
+<div class="modal " id="myModal" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h3 class="modal-title">Customer Details</h3>
+            </div>
+
+            <!-- Modal body -->
+            <div class="modal-body">
+
+                <form id="CustomerForm">
+                    <fieldset id="Submitform">
+                        
+                        <div class="form-group">
+                            <div class = "col-sm-3"> Select Customer</div>
+                            
+                            
+                            @Html.DropDownList("CustomerId", null, htmlAttributes: new { @class = "form-control", @Id = "DropdownCustomer" })
+                        </div>
+                        <div class="form-group">
+                            <div class=" col-sm-3">
+                                ProductName</div>
+                                @* @Html.TextBoxFor( model => model.Name,new {@class="form-control" ,@placeholder="Name"})*@
+
+                                @Html.DropDownList("ProductId", null, htmlAttributes: new { @class = "form-control", @Id = "DropdownProduct" })
+</div>
+                        <div class="form-group">
+                            <div class="col-sm-3">
+                                StoreName</div>
+
+                                @Html.DropDownList("StoreId", null, htmlAttributes: new { @class = "form-control", @Id = "DropdownStores" })
+</div>
+
+                        <div class="form-group">
+                            <div class="col-sm-3">
+                                Date</div>
+                               <input type="date" class="form-control" id="txtDate"  />
+</div>
+
+                    </fieldset>
+                </form>
+            </div>
+            
+            <!-- Modal footer -->
+            <div class="modal-footer">
+                <button id="btnCreate" class="btn btn-default   right" data-toggle="modal" type="button" onclick="AddData()">Save</button>
+                <button id="btnUpdate" class="btn btn-default  right" type="button" onclick="UpdateSales()">Update</button>
+                <button id="btnCancle" class="btn btn-default  right" type="button" data-dismiss="modal">Cancle</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    
+
+    //Getting Customers
+    $(document).ready(loadData())
+    function loadData() {
+
+        $.get("/ProductSolds/CreateSalestList", null, DataBind);
+        $('#btnUpdate').hide();
+        $('#btnCreate').show();
+        function DataBind(salesList) {
+            $("#btnCreate").show();
+            // alert($("#SetCustomersList").text);
+            var rows = " ";
+            $('#SetProductsList').empty();
+            var dt = JSON.stringify(salesList);
+            // alert(CustomerList.Name);
+
+            $.each(salesList, function (i, item) {
+                rows = "<tr class='row_" + item.id + "' >" +
+                    "<td hidden='hidden'>" + item.id + "</td>" +
+                    "<td>" + item.customername + "</td>" +
+                    "<td>" + item.productname + "</td>" +
+                    "<td>" + item.storename + "</td>" +
+                    "<td>" + item.datesold + "</td>" +
+                    "<td>" + "<a href='#' class='btn btn-warning' onclick='EditSales(" + item.id + ")'><span class='glyphicon glyphicon-edit'></span>Edit</a>" + "</td>" +
+                    "<td>" + "<a href='#' class='btn btn-danger' onclick='Deletesales(" + item.id + ")'><span class='glyphicon glyphicon-trash'></span>Delete</a>" + "</td>" +
+                    "</tr>";
+                $('#SetProductsList').append(rows);
+            });
+        }
+   }
+    var AddData=function () {
+        
+        var Salesobj = {
+           
+            CustomerId: $('#DropdownCustomer').val(),
+            customername: $('#DropdownCustomer option:selected').text(), 
+            ProductId: $('#DropdownProduct').val(),
+            productname: $('#DropdownProduct option:selected').text(),
+            StoreId: $('#DropdownStores').val(),
+            storename: $('#DropdownStores option:selected').text(),
+            datesold: $('#txtDate').val()
+        };
+        
+        var rows = " ";
+        
+        $.ajax({
+            type: "POST",
+            datatype: "json",          
+          
+            url: '@Url.Action("Create","ProductSolds")',
+            data: Salesobj,           
+            success: function (id) {
+               // alert(data);
+                $("#myModal").modal("hide");
+                rows = "<tr class='row_'" + id + "' >" +
+                     
+                     "<td>" + Salesobj.customername + "</td>" +
+                     "<td>" + Salesobj.productname + "</td>" +
+                     "<td>" + Salesobj.storename + "</td>" +
+                    "<td>" + Salesobj.datesold.$.format.date(new Date(), 'dd MM yy')+ "</td>" +
+                    "<td>" + "<a href='#' class='btn btn-warning' onclick='EditCustomer(" + id + ")'><span class='glyphicon glyphicon-edit'></span>Edit</a>" + "</td>" +
+                    "<td>" + "<a href='#' class='btn btn-danger' onclick='Deletesales(" + id + ")'><span class='glyphicon glyphicon-edit'></span>Delete</a>" + "</td>" +
+                    "</tr>";
+                $('#SetProductsList').prepend(rows);               
+            },
+            error: function (errormessage) {
+                alert(errormessage.responseText);
+            }
+        })
+    }
+
+
+    //Update customer 
+    function EditSales(id) {
+        $("#lblId").val(id);
+            $.ajax({
+                type: "POST",
+                datatype: "json",
+                url: "/ProductSolds/GetsaleByid",
+                data: { Id: id },                
+                success: function (result) {
+                
+                    alert($("#lblId").val());
+                   // loadData();
+                   
+                    $('#btnUpdate').show();
+                    $('#btnCreate').hide();
+                    $('#myModal').modal('show');
+                   
+                },
+               error : function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            });
+       // });
+    }
+//Updating Customer
+    function UpdateSales() {
+        $("#lblId").val();
+        var Salesobj = {
+            Id: $("#lblId").val(),
+            CustomerId: $('#DropdownCustomer').val(),
+            customername: $('#DropdownCustomer option:selected').text(),
+            ProductId: $('#DropdownProduct').val(),
+            productname: $('#DropdownProduct option:selected').text(),
+            StoreId: $('#DropdownStores').val(),
+            storename: $('#DropdownStores option:selected').text(),
+            datesold: $('#txtDate').val()
+        };
+         // var mydata = $("CustomerForm").serialize();
+        $.ajax({
+            type: "POST",
+            datatype: "json",
+ 
+            url: '@Url.Action("Update", "ProductSolds")',
+            data: Salesobj,
+            success: function (result) {
+                alert(result);
+                if (result == true || result =="true" ) {
+                    loadData();                    
+                }
+          
+                $("#myModal").modal("hide");
+            },
+            error: function (errormessage) {
+                alert(errormessage.responseText);
+            }
+        });            
+    }
+
+
+    //Deleting sales
+    function Deletesales(id) {
+        $.ajax({
+            type: 'get',
+            ajaxasync: true,
+            url: '/ProductSolds/DeleteSales',
+            data: { Id: id },
+
+            success: function (result) {
+                alert(result)
+                if (result == true || result=="true") {
+                    $(".row_" + id).remove();
+                    // tr.remove();
+                    alert("successfully deleted");
+                }
+            },
+            error: function () {
+                alert("failed");
+            }
+        });
+    }
+
+//Populatedropdown
+    //function BindDropdown() {
+    //    $.get("/ProductSolds/Create", null, Dropdownload);
+       
+    //    function Dropdownload(List) {
+    //        alert(List[0].Id);
+    //        if (List.length > 0) {
+    //            $('#DropdownProduct').html('');
+    //            var options = '';
+    //            options = '<option value="Select">Select</option>';
+    //            $.each(List, function (i, item) {
+
+    //                options = '<option value="' + item.Id + '">' + item.ProductName + '</option>';
+    //                $('#DropdownProduct').append(options);
+    //            });
+               
+    //        }
+    //    }
+    //}
+    </script>
